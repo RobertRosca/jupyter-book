@@ -1,20 +1,23 @@
 """Plugin aware click command Group."""
+
+import sys
+
 from typing import Any, Iterable, List, Set
 
 import click
 
-try:
-    from importlib import metadata
-except ImportError:
-    import importlib_metadata as metadata
+if sys.version_info < (3, 10):
+    from backports.entry_points_selectable import entry_points
+else:
+    from importlib.metadata import entry_points
 
 
 def get_entry_point_names(group: str) -> List[str]:
-    return [ep.name for ep in metadata.entry_points().get(group, [])]
+    return [ep.name for ep in entry_points().select(group=group)]
 
 
 def load_entry_point(group: str, name: str) -> Any:
-    eps = [ep for ep in metadata.entry_points().get(group, []) if ep.name == name]
+    eps = [ep for ep in entry_points().select(group=group) if ep.name == name]
     if not eps:
         raise KeyError(f"Entry-point {group}:{name}")
     return eps[0].load()
